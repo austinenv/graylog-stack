@@ -1,13 +1,13 @@
 services:
   mongodb:
-    image: mongo:5.0
+    image: mongo:7
     hostname: mongodb
     volumes:
       - mongodb_data:/data/db
     restart: on-failure
 
   datanode:
-    image: graylog/graylog-datanode:6.1
+    image: graylog/graylog-datanode:6.1.1
     hostname: datanode
     environment:
       GRAYLOG_DATANODE_NODE_ID_FILE: /var/lib/graylog-datanode/node-id
@@ -31,7 +31,7 @@ services:
 
   graylog:
     hostname: graylog
-    image: graylog/graylog:6.1
+    image: graylog/graylog:6.1.1
     depends_on:
       mongodb:
         condition: service_started
