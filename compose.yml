@@ -3,15 +3,17 @@ services:
     image: mongo:7
     container_name: mongodb-container
     hostname: mongodb
+    networks:
+      - graylog-network
     volumes:
       - mongodb_data:/data/db
       - mongodb_config:/data/configdb
     restart: on-failure
 
-  datanode:
-    image: graylog/graylog-datanode:6.1.1
-    container_name: datanode-container
-    hostname: datanode
+  datanode1:
+    image: graylog/graylog-datanode:latest
+    container_name: datanode-container1
+    hostname: datanode1
     environment:
       GRAYLOG_DATANODE_NODE_ID_FILE: /var/lib/graylog-datanode/node-id
       GRAYLOG_DATANODE_PASSWORD_SECRET: ${GRAYLOG_PASSWORD_SECRET}
@@ -24,16 +26,64 @@ services:
       nofile:
         soft: 65536
         hard: 65536
+    networks:
+      - graylog-network
     ports:
       - 8999:8999/tcp   # DataNode API
-      - 9200:9200/tcp
-      - 9300:9300/tcp
     volumes:
-      - graylog-datanode:/var/lib/graylog-datanode
+      - graylog-datanode1:/var/lib/graylog-datanode
+    restart: on-failure
+
+  datanode2:
+    image: graylog/graylog-datanode:latest
+    container_name: datanode-container2
+    hostname: datanode2
+    environment:
+      GRAYLOG_DATANODE_NODE_ID_FILE: /var/lib/graylog-datanode/node-id
+      GRAYLOG_DATANODE_PASSWORD_SECRET: ${GRAYLOG_PASSWORD_SECRET}
+      GRAYLOG_DATANODE_ROOT_PASSWORD_SHA2: ${GRAYLOG_ROOT_PASSWORD_SHA2}
+      GRAYLOG_DATANODE_MONGODB_URI: mongodb://mongodb:27017/graylog
+    ulimits:
+      memlock:
+        hard: -1
+        soft: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+    networks:
+      - graylog-network
+    ports:
+      - 8998:8998/tcp   # DataNode API
+    volumes:
+      - graylog-datanode2:/var/lib/graylog-datanode
+    restart: on-failure
+
+  datanode3:
+    image: graylog/graylog-datanode:latest
+    container_name: datanode-container3
+    hostname: datanode3
+    environment:
+      GRAYLOG_DATANODE_NODE_ID_FILE: /var/lib/graylog-datanode/node-id
+      GRAYLOG_DATANODE_PASSWORD_SECRET: ${GRAYLOG_PASSWORD_SECRET}
+      GRAYLOG_DATANODE_ROOT_PASSWORD_SHA2: ${GRAYLOG_ROOT_PASSWORD_SHA2}
+      GRAYLOG_DATANODE_MONGODB_URI: mongodb://mongodb:27017/graylog
+    ulimits:
+      memlock:
+        hard: -1
+        soft: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+    networks:
+      - graylog-network
+    ports:
+      - 8997:8997/tcp   # DataNode API
+    volumes:
+      - graylog-datanode3:/var/lib/graylog-datanode
     restart: on-failure
 
   graylog:
-    image: graylog/graylog:6.1.1
+    image: graylog/graylog:latest
     container_name: graylog-container
     hostname: graylog
     depends_on:
@@ -47,6 +97,8 @@ services:
       GRAYLOG_HTTP_BIND_ADDRESS: 0.0.0.0:9000
       GRAYLOG_HTTP_EXTERNAL_URI: http://localhost:9000/
       GRAYLOG_MONGODB_URI: mongodb://mongodb:27017/graylog
+    networks:
+      - graylog-network
     ports:
     - 5044:5044/tcp   # Beats
     - 5140:5140/udp   # Syslog
@@ -67,7 +119,20 @@ services:
 
 volumes:
   mongodb_data:
+    driver: local
   mongodb_config:
-  graylog-datanode:
+    driver: local
+  graylog-datanode1:
+    driver: local
+  graylog-datanode2:
+    driver: local
+  graylog-datanode3:
+    driver: local
   graylog_data:
+    driver: local
   graylog_journal:
+    driver: local
+
+networks:
+  graylog-network:
+    driver: bridge
